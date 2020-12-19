@@ -1,0 +1,41 @@
+spring.profiles.active: dev
+---
+logging:
+    level:
+        # .yaml 파일에서의 logging 레벨 설정 https://stackoverflow.com/a/51026767
+        # org.springframework.security.web.FilterChainProxy: INFO
+        root: INFO
+spring:
+    profiles: dev
+    datasource:
+        hikari: # 커넥션 풀
+            connection-timeout: 2000
+            maximum-pool-size: 5
+        driver-class-name: org.postgresql.Driver
+        url: jdbc:postgresql://localhost:5432/learn_spring
+        username: learn_spring_user
+        password: learn_spring
+    jpa:
+        hibernate:
+            ddl-auto: create
+    devtools:
+        # restart trigger된 경우 애플리케이션의 auto-configuration에 발생한 변화 보여준다
+        # 기본적으로 /META-INF/maven, /META-INF/resources, /resources, /static, /public, 또는 /templates 의 변화는 live reload 트리거
+        restart:
+            log-condition-evaluation-delta: true
+            #enabled: fasle                 # restart 기능 on/off 관리
+            #exclude: static/**,public/**   # restart 제외
+            #additional-exclude:            # 위의 기본값 유지하면서 추가로 제외하고 싶은 경우
+            #trigger-file: {FILENAME_OF_TRIGGER} # path 제외
+server:
+    port: 8080
+---
+spring:
+    profiles: prod
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        url: jdbc:postgresql://localhost:5432/learn_spring
+        username: learn_spring_user
+        password: learn_spring
+server:
+    port: 8080

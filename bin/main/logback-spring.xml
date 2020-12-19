@@ -1,0 +1,159 @@
+<!--
+    # logback-spring.xml
+    - "-spring"을 붙여야 Srping Boot에서 지원하는 프로필별 설정 등의 확장을 사용할 수 있다
+-->
+<!--
+    # http://logback.qos.ch/manual/configuration.html#automaticStatusPrinting
+    - debug="true"로 설정하면 logback의 내부 상태 정보를 계속 출력
+    - <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" /> 와 같다
+    <configuration debug="true">
+
+
+    # http://logback.qos.ch/manual/configuration.html#autoScan
+    - scan="true"로 설정하면 logback-classic이 구성 파일에서 변화를 스캔하여 스스로 재설정
+    - ReconfigureOnChangeTask(http://logback.qos.ch/xref/ch/qos/logback/classic/joran/ReconfigureOnChangeTask.html) 설치
+    - 기본적으로 구성 파일은 매 분마다 변화 감지를 위해 스캔되는데, scanPeriod 속성으로 시간 설정 가능
+    - scanPeriod 속성에 단위(seconds)가 지정되지 않으면 milliseconds로 가정한다
+    <configuration scan="true" scanPeriod="30 seconds">
+
+
+    # http://logback.qos.ch/manual/configuration.html#packagingData
+    - 각 stack trace line마다 패키지 정보 출력
+    <configuration packagingData="true">
+
+
+    # 구성 파일 구문(http://logback.qos.ch/manual/configuration.html#syntax)
+    <configuration>
+        # http://logback.qos.ch/manual/configuration.html#fileInclusion
+        - 지정된 경로의 구성 xml 파일을 가져올 수 있다
+        - 지정된 경로의 구성 xml 파일에는 '반드시' <included> 태그 내에 설정을 해야 한다
+        - optional=true 통해서 포함시킬 구성이 없을 경우 출력되는 경고 메시지 무시 가능
+        <include optional="{true | false}" [file="{FULLY.QUALIFIED.CONFIGURATION.FILE.PATH}" | resource="classpath:{CONFIGURATION.FILE.PATH}" | url={URL]/>
+
+        # http://logback.qos.ch/manual/configuration.html#insertFromJNDI
+        - JNDI(Java Name and Directory Interface)에 저장된 env-entries(https://tomee.apache.org/examples-trunk/injection-of-env-entry/)를 사용할 수 있따
+        <insertFromJNDI env-entry-name="java:comp/env/appName" as="appName" />
+
+        # http://logback.qos.ch/manual/configuration.html#contextName
+        - 기본적으로 "default"라고 불린다
+        - 한번 설정되면 그 후에는 변경 불가(http://logback.qos.ch/apidocs/ch/qos/logback/core/ContextBase.html#setName(java.lang.String))
+        <contextName>{CUSTOM_CONTEXT_NAME}</contextName>
+
+        # http://logback.qos.ch/manual/configuration.html#definingProps
+        - <property> 태그 통해서 변수 지정 가능
+        - Logback 구성에 선언되지 않은 경우 시스템 속성을 찾아보기 때문에, java -DUSER_HOME="{USER_HOME}" {PROGRAM_NAME} 사용하는 것과 같다
+        - scopes: local -> context -> system -> OS Environment(https://docs.oracle.com/javase/tutorial/essential/environment/env.html) 순으로 탐색
+            - local: 속성이 구성 파일에 정의된 시점부터 구성 파일의 해석 및 실행 시까지 존재
+            - context: 속성이 컨텍스트에 추가되고 컨테스트가 지속되거나 지워지지 않는 한 유지된다
+            - system: JVM 시스템 속성으로 추가되고 JVM이 지속되거나 지워지지 않는 한 유지된다
+        <property name={NAME} value={VALUE} scope={<옵션> local | context | system}/>
+        - file에 {NAME}={VALUE} 형식으로 모두 설정해두고 읽어들여와 사용할 수도 있다(EX: USER_HOME=/home/{USER_NAME})
+        <property file={PATH.TO.FILE.properties} />
+
+        # http://logback.qos.ch/manual/configuration.html#definingPropsOnTheFly
+        - 기본 구현 클래스
+            - ch.qos.logback.core.property.CanonicalHostNamePropertyDefiner
+            - ch.qos.logback.core.property.FileExistsPropertyDefiner
+            - ch.qos.logback.core.property.ResourceExistsPropertyDefiner
+        <define name={<필수> NAME} class={<필수> ch.qos.logback.core.spi.PropertyDefiner 구현 클래스}></define>
+
+        # http://logback.qos.ch/manual/configuration.html#conditional
+        - condition: context 속성 또는 system 속성만 접근할 수 있는 Java 표현식
+            - property('{KEY}').contains('{VALUE}')
+            - isDefined('{KEY}')
+            - isNull('{KEY}')
+        <if condition='property("{PROPERTY_NAME}").contains("{PROPERTY_VALUE}")''>
+            <then></then>
+            <else></else>
+        </if>
+
+        # 하나 또는 그 이상의 logger
+        - additivity: false로 설정할 경우 계층 구조상 더 상위에 있는 appender에 로그가 출력되지 않는다
+        <logger name={<필수> NAME} level={<옵션> TRACE | DEBUG | INFO | WARN | ERROR | ALL | OFF | INHERITED | NULL} additivity={<옵션> true | false}>
+            # 참조된 이 logger에 추가되며, log4j와 달리, 이전에 참조된 어떤 <appender-ref> 태그도 닫거나 지우지 않는다
+            # 로그 출력의 레벨(TRACE, DEBUG 등)은 이 logger의 레벨이 아닌, 참조되어 호출되는 logger의 레벨을 따른다
+            <appender-ref>
+        </logger>
+
+        # 하나 또는 그 이상의 appender
+        <appender name={<필수> NAME} class={<필수> FULLY.QUALIFIED.CLASS.NAME}>
+            # 이 외에 {FULLY.QUALIFIED.CLASS.NAME} 클래스의 JavaBean 속성에 상응하는 엘리먼트 포함 가능
+            # PatternLayout 클래스인 경우 생략될 수 있다(기본 클래스 매핑: http://logback.qos.ch/manual/onJoran.html#defaultClassMapping)
+            <layout class={<필수> FULLY.QUALIFIED.CLASS.NAME}></layout>
+
+            # http://logback.qos.ch/manual/encoders.html#WhatIsAnEncoder
+            - 이벤트를 바이트 배열로 변환시키고 OutputStream에 쓰는 것을 담당
+            - PatternLayoutEncoder 클래스인 경우  생략될 수 있다(기본 클래스 매핑: http://logback.qos.ch/manual/onJoran.html#defaultClassMapping)
+            <encoder>
+                # http://logback.qos.ch/manual/layouts.html#ClassicPatternLayout
+                - 패턴 지정
+                <pattern></pattern>
+            </encoder>
+
+            <filter></filter>
+            # 이 외에 ch.qos.logback.core.Appender 클래스의 JavaBean 속성에 상응하는 엘리먼트 포함 가능
+
+        </appender>
+
+        # 하나의 root
+        - root logger는 이미 name="ROOT"로 이름이 붙어서 name 속성 설정 불가
+        - level=OFF 하면 root의 모든 logger를 종료하지만, 따로 설정된 logger까지 종료하진 않는다
+        <root level={<옵션> TRACE | DEBUG | INFO | WARN | ERROR | ALL | OFF}>
+            # 참조된 이 logger에 추가되며, log4j와 달리, 이전에 참조된 어떤 <appender-ref> 태그도 닫거나 지우지 않는다
+            <appender-ref>
+        </root>
+    </configuration>
+-->
+<configuration scan="true">
+    <!-- <include resource="org/springframework/boot/logging/logback/defaults.xml"/> -->
+    <!--
+        파일로 include할 때는 반드시 included 태그 안에 include할 내용이 있어야 한다.
+        여기서는 내용을 가져와서 included 태그 주석 처리
+    -->
+    <!-- included # org.springframework.boot.logging.logback.defaults.xml 시작 -->
+    <conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+    <conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+    <conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+    <!--
+        # http://logback.qos.ch/manual/layouts.html#coloring
+        - faint, red, green, yellow, blue, magenta, cyan
+     -->
+    <property name="LOG_DATEFORMAT_PATTERN" value="yyyy-MM-dd HH:mm:ss.SSS"/>
+    <property name="CONSOLE_LOG_PATTERN" value="%clr(%d{${LOG_DATEFORMAT_PATTERN}}){faint}"/>
+    <property name="LOG_LEVEL_PATTERN" value="%highlight(%5p)"/>
+    <property name="PID" value=" "/>
+    <property name="LOG_EXCEPTION_CONVERSION_WORD" value="%wEx"/>
+    <property name="CONSOLE_LOG" value="${CONSOLE_LOG_PATTERN} %clr(${LOG_LEVEL_PATTERN}) %clr(${PID}){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD}}"/>
+    <property name="FILE_LOG_PATTERN" value="${LOG_DATEFORMAT_PATTERN} ${LOG_LEVEL_PATTERN} ${PID} --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD}}"/>
+
+    <logger name="org.apache.catalina.startup.DigesterFactory" level="ERROR"/>
+    <logger name="org.apache.catalina.util.LifecycleBase" level="ERROR"/>
+    <logger name="org.apache.coyote.http11.Http11NioProtocol" level="WARN"/>
+    <logger name="org.apache.sshd.common.util.SecurityUtils" level="WARN"/>
+    <logger name="org.apache.tomcat.util.net.NioSelectorPool" level="WARN"/>
+    <logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="ERROR"/>
+    <logger name="org.hibernate.validator.internal.util.Version" level="WARN"/>
+    <!--/included # org.springframework.boot.logging.logback.defaults.xml 끝 -->
+
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <!-- included # org.springframework.boot.logging.logback.console-appender.xml 시작 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
+        <encoder>
+            <pattern>${CONSOLE_LOG}</pattern>
+        </encoder>
+    </appender>
+    <!-- /included # org.springframework.boot.logging.logback.console-appender.xml 끝 -->
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <!-- 16:06:09.031 [main] INFO  chapters.configuration.MyApp1 - Entering application -->
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>
