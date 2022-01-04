@@ -6,18 +6,31 @@ logging:
         # org.springframework.security.web.FilterChainProxy: INFO
         root: INFO
 spring:
-    profiles: dev
+    config:
+        activate:
+            on-profile: dev
     datasource:
+        postgres1:
+            driver-class-name: org.postgresql.Driver
+            url: jdbc:postgresql://localhost:5432/learn_spring
+            username: learn_spring_user
+            password: learn_spring
+        clickhouse1:
+            driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+            url: jdbc:clickhouse:http://localhost:8123
+            database: test_db
+            username: default
+            password:
         hikari: # 커넥션 풀
             connection-timeout: 2000
             maximum-pool-size: 5
-        driver-class-name: org.postgresql.Driver
-        url: jdbc:postgresql://localhost:5432/learn_spring
-        username: learn_spring_user
-        password: learn_spring
     jpa:
         hibernate:
-            ddl-auto: create
+#            ddl-auto: validate
+            naming:
+                implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+                physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        open-in-view: false
     devtools:
         # restart trigger된 경우 애플리케이션의 auto-configuration에 발생한 변화 보여준다
         # 기본적으로 /META-INF/maven, /META-INF/resources, /resources, /static, /public, 또는 /templates 의 변화는 live reload 트리거
@@ -31,7 +44,9 @@ server:
     port: 8080
 ---
 spring:
-    profiles: prod
+    config:
+        activate:
+            on-profile: prod
     datasource:
         driver-class-name: org.postgresql.Driver
         url: jdbc:postgresql://localhost:5432/learn_spring

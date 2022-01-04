@@ -1,0 +1,14 @@
+{
+  "properties": [
+    {
+      "name": "spring.datasource.postgres-001.driver-class-name",
+      "type": "java.lang.String",
+      "description": "Description for spring.datasource.postgres-001.driver-class-name."
+    },
+    {
+      "name": "spring.datasource.postgres-001.url",
+      "type": "java.lang.String",
+      "description": "Description for spring.datasource.postgres-001.url."
+    }
+  ]
+}
