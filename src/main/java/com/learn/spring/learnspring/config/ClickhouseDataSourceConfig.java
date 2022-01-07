@@ -6,7 +6,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateProperties;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateSettings;
@@ -16,14 +15,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -78,10 +74,6 @@ public class ClickhouseDataSourceConfig {
 
     @Bean(name = "clickhouseEntityManager")
     public LocalContainerEntityManagerFactoryBean clickhouseEntityManager(EntityManagerFactoryBuilder builder) throws SQLException {
-        Map<String, Object> vendorProperties = getVendorProperties();
-        for (String key : vendorProperties.keySet()) {
-            log.info("{}: {}", key, vendorProperties.get(key));
-        }
         return builder
                 .dataSource(clickhouseDataSource())
                 .properties(getVendorProperties())
